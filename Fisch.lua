@@ -301,7 +301,11 @@ local function startAutoReel()
         if failreelvalue then
             game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(50, false)
         else
-            game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
+            if perfectcatchvalue then
+                game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, true)
+            else
+                game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
+            end
         end
         --game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
     end
@@ -690,6 +694,15 @@ do
             failreelvalue = true
 		else
 			failreelvalue = false
+        end
+    end)
+
+    local perfectcatch = Tabs.Main:AddToggle("perfectcatch", {Title = "Perfect Catch (For Dupe Wisdom)", Default = false })
+    perfectcatch:OnChanged(function()
+        if Options.perfectcatch.Value == true then
+            perfectcatchvalue = true
+		else
+			perfectcatchvalue = false
         end
     end)
 
