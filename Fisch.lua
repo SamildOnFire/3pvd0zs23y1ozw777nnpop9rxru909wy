@@ -301,11 +301,7 @@ local function startAutoReel()
         if failreelvalue then
             game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(50, false)
         else
-            if perfectcatchvalue then
-                game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, true)
-            else
-                game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
-            end
+            game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
         end
         --game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
     end
