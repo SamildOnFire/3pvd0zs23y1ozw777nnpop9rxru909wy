@@ -38,7 +38,7 @@ if DeviceType == "Mobile" then
 end
 
 local Window = Fluent:CreateWindow({
-    Title = game:GetService("MarketplaceService"):GetProductInfo(16732694052).Name .." | CupPink - Premium",
+    Title = game:GetService("MarketplaceService"):GetProductInfo(16732694052).Name .." | CupPink V.2 - Premium",
     SubTitle = " (discord.gg/KyfvX2HB3v)",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
