@@ -1,5 +1,5 @@
 if getgenv().cuppink then warn("CupPibk Hub : Already executed!") return end
-getgenv().cuppink = true
+getgenv().cuppink = false
 
 if not game:IsLoaded() then
     game.Loaded:Wait()
@@ -82,6 +82,7 @@ local Mouse = LocalPlayer:GetMouse()
 local CastMode = "Blatant"
 local ShakeMode = "Navigation"
 local ReelMode = "Blatant"
+local ReelFishMode = "Normal"
 local CollectMode = "Teleports"
 local teleportSpots = {}
 local FreezeChar = false
@@ -113,52 +114,6 @@ local function autoAnt1AFK()
     game:GetService("ReplicatedStorage"):WaitForChild("events"):WaitForChild("afk"):FireServer(false)
 end
 Ant1AFKConnection = RunService.RenderStepped:Connect(autoAnt1AFK)
-
--- // // // Data Buy Items // // // --
-local AllItems = {
-    ['Advanced Diving Gear'] = {Price = 15000, Type = 'Item'},
-    ['Aurora Rod'] = {Price = 90000, Type = 'Rod'},
-    ['Aurora Totem'] = {Price = 500000, Type = 'Item'},
-    ['Bait Crate'] = {Price = 120, Type = 'Fish'},
-    ['Basic Diving Gear'] = {Price = 3000, Type = 'Item'},
-    ['Carbon Crate'] = {Price = 490, Type = 'Fish'},
-    ['Carbon Rod'] = {Price = 2000, Type = 'Rod'},
-    ['Common Crate'] = {Price = 128, Type = 'Fish'},
-    ['Conception Conch'] = {Price = 444, Type = 'Item'},
-    ['Coral Geode'] = {Price = 600, Type = 'Fish'},
-    ['Crab Cage'] = {Price = 45, Type = 'Item'},
-    ['Destiny Rod'] = {Price = 190000, Type = 'Rod'},
-    ['Eclipse Totem'] = {Price = 250000, Type = 'Item'},
-    ['Fast Rod'] = {Price = 4500, Type = 'Rod'},
-    ['Firework'] = {Price = 130, Type = 'Item'},
-    ['Fish Radar'] = {Price = 8000, Type = 'Item'},
-    ['Flippers'] = {Price = 9000, Type = 'Item'},
-    ['Fortune Rod'] = {Price = 12750, Type = 'Rod'},
-    ['GPS'] = {Price = 100, Type = 'Item'},
-    ['Glider'] = {Price = 900, Type = 'Item'},
-    ['Kings Rod'] = {Price = 120000, Type = 'Rod'},
-    ['Lucky Rod'] = {Price = 5250, Type = 'Rod'},
-    ['Magnet Rod'] = {Price = 15000, Type = 'Rod'},
-    ['Meteor Totem'] = {Price = 75000, Type = 'Item'},
-    ['Midas Rod'] = {Price = 55000, Type = 'Rod'},
-    ['Mythical Rod'] = {Price = 110000, Type = 'Rod'},
-    ['Phoenix Rod'] = {Price = 40000, Type = 'Rod'},
-    ['Plastic Rod'] = {Price = 900, Type = 'Rod'},
-    ['Quality Bait Crate'] = {Price = 525, Type = 'Fish'},
-    ['Rapid Rod'] = {Price = 14000, Type = 'Rod'},
-    ['Rod Of The Depths'] = {Price = 750000, Type = 'Rod'},
-    ['Scurvy Rod'] = {Price = 50000, Type = 'Rod'},
-    ['Smokescreen Totem'] = {Price = 2000, Type = 'Item'},
-    ['Steady Rod'] = {Price = 7000, Type = 'Rod'},
-    ['Stone Rod'] = {Price = 3000, Type = 'Rod'},
-    ['Sundial Totem'] = {Price = 2000, Type = 'Item'},
-    ['Super Flippers'] = {Price = 30000, Type = 'Item'},
-    ['Tempest Totem'] = {Price = 2000, Type = 'Item'},
-    ['Tidebreaker'] = {Price = 80000, Type = 'Item'},
-    ['Volcanic Geode'] = {Price = 600, Type = 'Fish'},
-    ['Windset Totem'] = {Price = 2000, Type = 'Item'},
-    ['Witches Ingredient'] = {Price = 10000, Type = 'Item'},
-}
 
 -- // // // Auto Cast // // // --
 local autoCastEnabled = false
@@ -298,12 +253,13 @@ local function startAutoReel()
         local bar = reel:FindFirstChild("bar")
         local playerbar = bar and bar:FindFirstChild("playerbar")
         playerbar:GetPropertyChangedSignal('Position'):Wait()
-        if failreelvalue then
-            game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(50, false)
-        else
+        if ReelFishMode == "Normal" then
             game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
+        elseif ReelFishMode == "Perfect" then
+            game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, true)
+        elseif ReelFishMode == "Fail" then
+            game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(0)
         end
-        --game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
     end
 end
 
@@ -684,24 +640,6 @@ do
         end
     end)
 
-    local failreel = Tabs.Main:AddToggle("failreel", {Title = "Fail Reel (For Dupe Eternal King)", Default = false })
-    failreel:OnChanged(function()
-        if Options.failreel.Value == true then
-            failreelvalue = true
-		else
-			failreelvalue = false
-        end
-    end)
-
-    local perfectcatch = Tabs.Main:AddToggle("perfectcatch", {Title = "Perfect Catch (For Dupe Wisdom)", Default = false })
-    perfectcatch:OnChanged(function()
-        if Options.perfectcatch.Value == true then
-            perfectcatchvalue = true
-		else
-			perfectcatchvalue = false
-        end
-    end)
-
     -- // Mode Tab // --
     local section = Tabs.Main:AddSection("Mode Fishing")
     local autoCastMode = Tabs.Main:AddDropdown("autoCastMode", {
@@ -730,6 +668,15 @@ do
     })
     autoReelMode:OnChanged(function(Value)
         ReelMode = Value
+    end)
+    local ReelMode = Tabs.Main:AddDropdown("ReelMode", {
+        Title = "Reel Mode",
+        Values = {"Normal", "Perfect", "Fail"},
+        Multi = false,
+        Default = ReelFishMode,
+    })
+    ReelMode:OnChanged(function(Value)
+        ReelFishMode = Value
     end)
 
     -- // Sell Tab // --
