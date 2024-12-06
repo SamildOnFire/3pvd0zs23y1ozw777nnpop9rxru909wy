@@ -1,5 +1,5 @@
 if getgenv().cuppink then warn("CupPibk Hub : Already executed!") return end
-getgenv().cuppink = false
+getgenv().cuppink = true
 
 if not game:IsLoaded() then
     game.Loaded:Wait()
