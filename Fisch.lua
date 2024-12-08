@@ -1,11 +1,12 @@
 if getgenv().cuppink then warn("CupPibk Hub : Already executed!") return end
-getgenv().cuppink = false
+getgenv().cuppink = true
 
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+--local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/BizcuitMild/scripts/main/test.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
@@ -43,7 +44,7 @@ local Window = Fluent:CreateWindow({
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = false, -- The blur may be detectable, setting this to false disables blur entirely
-    Theme = "Rose",
+    Theme = "DarkerPink",
     MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
 })
 
@@ -82,7 +83,6 @@ local Mouse = LocalPlayer:GetMouse()
 local CastMode = "Blatant"
 local ShakeMode = "Navigation"
 local ReelMode = "Blatant"
-local ReelFishMode = "Normal"
 local CollectMode = "Teleports"
 local teleportSpots = {}
 local FreezeChar = false
@@ -94,6 +94,13 @@ local SelectedTotemDupe = nil
 local Target
 local ZoneCastValue = false
 local fishtable = {}
+
+getgenv().config = {
+    auto_cast = nil,
+    auto_shake = nil,
+    auto_reel = nil,
+    reel_mode = "Normal",
+}
 
 -- // // // Functions // // // --
 function ShowNotification(String)
@@ -114,41 +121,6 @@ local function autoAnt1AFK()
     game:GetService("ReplicatedStorage"):WaitForChild("events"):WaitForChild("afk"):FireServer(false)
 end
 Ant1AFKConnection = RunService.RenderStepped:Connect(autoAnt1AFK)
-
--- // // // Auto Cast // // // --
-local autoCastEnabled = false
-local function autoCast()
-    if LocalCharacter then
-        local tool = LocalCharacter:FindFirstChildOfClass("Tool")
-        if tool then
-            local hasBobber = tool:FindFirstChild("bobber")
-            if not hasBobber then
-                if CastMode == "Legit" then
-                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, LocalPlayer, 0)
-                    HumanoidRootPart.ChildAdded:Connect(function()
-                        if HumanoidRootPart:FindFirstChild("power") ~= nil and HumanoidRootPart.power.powerbar.bar ~= nil then
-                            HumanoidRootPart.power.powerbar.bar.Changed:Connect(function(property)
-                                if property == "Size" then
-                                    if HumanoidRootPart.power.powerbar.bar.Size == UDim2.new(1, 0, 1, 0) then
-                                        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, LocalPlayer, 0)
-                                    end
-                                end
-                            end)
-                        end
-                    end)
-                elseif CastMode == "Blatant" then
-                    local rod = LocalCharacter and LocalCharacter:FindFirstChildOfClass("Tool")
-                    if rod and rod:FindFirstChild("values") and string.find(rod.Name, "Rod") then
-                        task.wait(0.5)
-                        local Random = math.random(90, 99)
-                        rod.events.cast:FireServer(Random)
-                    end
-                end
-            end
-        end
-        task.wait(0.5)
-    end
-end
 
 -- // // // Auto Shake // // // --
 local autoShakeEnabled = false
@@ -253,11 +225,11 @@ local function startAutoReel()
         local bar = reel:FindFirstChild("bar")
         local playerbar = bar and bar:FindFirstChild("playerbar")
         playerbar:GetPropertyChangedSignal('Position'):Wait()
-        if ReelFishMode == "Normal" then
+        if getgenv().config.reel_mode == "Normal" then
             game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
-        elseif ReelFishMode == "Perfect" then
+        elseif getgenv().config.reel_mode == "Perfect" then
             game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, true)
-        elseif ReelFishMode == "Fail" then
+        elseif getgenv().config.reel_mode == "Fail" then
             game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(0)
         end
     end
@@ -399,56 +371,6 @@ NoclipConnection = RunService.Stepped:Connect(function()
     end
 end)
 
--- // // // Dupe // // // --
-local DupeEnabled = false
-local DupeConnection
-local function autoDupe()
-    local hud = LocalPlayer.PlayerGui:FindFirstChild("hud")
-    if hud then
-        local safezone = hud:FindFirstChild("safezone")
-        if safezone then
-            local bodyAnnouncements = safezone:FindFirstChild("bodyannouncements")
-            if bodyAnnouncements then
-                local offerFrame = bodyAnnouncements:FindFirstChild("offer")
-                if offerFrame and offerFrame:FindFirstChild("confirm") then
-                    firesignal(offerFrame.confirm.MouseButton1Click)
-                end
-            end
-        end
-    end
-end
-
-local function startAutoDupe()
-    if DupeConnection or not DupeEnabled then return end
-    DupeConnection = RunService.RenderStepped:Connect(autoDupe)
-end
-
-local function stopAutoDupe()
-    if DupeConnection then
-        DupeConnection:Disconnect()
-        DupeConnection = nil
-    end
-end
-
-PlayerGui.DescendantAdded:Connect(function(descendant)
-    if DupeEnabled and descendant.Name == "confirm" and descendant.Parent and descendant.Parent.Name == "offer" then
-        local hud = LocalPlayer.PlayerGui:FindFirstChild("hud")
-        if hud then
-            local safezone = hud:FindFirstChild("safezone")
-            if safezone then
-                local bodyAnnouncements = safezone:FindFirstChild("bodyannouncements")
-                if bodyAnnouncements then
-                    local offerFrame = bodyAnnouncements:FindFirstChild("offer")
-                    if offerFrame and offerFrame:FindFirstChild("confirm") then
-                        firesignal(offerFrame.confirm.MouseButton1Click)
-                    end
-                end
-            end
-        end
-    end
-end)
-
-
 -- // // // ReduceGraphic // // // --
 local function ReduceGraphic()
     local workspace = game.Workspace
@@ -516,7 +438,6 @@ local allPlayerAround = GetPlayersString()
 
 local Tabs = { -- https://lucide.dev/icons/
     Home = Window:AddTab({ Title = "Home", Icon = "home" }),
-    Exclusives = Window:AddTab({ Title = "Exclusives", Icon = "heart" }),
     Main = Window:AddTab({ Title = "Main", Icon = "list" }),
     Items = Window:AddTab({ Title = "Items", Icon = "box" }),
     Teleports = Window:AddTab({ Title = "Teleports", Icon = "map-pin" }),
@@ -535,48 +456,24 @@ do
         end
     })
 
-    -- // Exclusives Tab // --
-    local sectionExclus = Tabs.Exclusives:AddSection("Exclusives Features")
-    local EternalKingSpam = Tabs.Exclusives:AddToggle("EternalKingSpam", {Title = "Eternal King Spam", Default = false })
-    EternalKingSpam:OnChanged(function()
-        local RequireRodDepths = PlayerGui.hud.safezone.equipment.rods.scroll.safezone:FindFirstChild("Rod Of The Depths")
-        local RequireRodEternal = PlayerGui.hud.safezone.equipment.rods.scroll.safezone:FindFirstChild("Rod Of The Eternal King")
-        if not RequireRodDepths or not RequireRodEternal then return ShowNotification("Requirement Rod Of The Depths and Rod Of The Eternal King") end
-        while Options.EternalKingSpam.Value do
-            ReplicatedStorage.events.equiprod:FireServer("Rod Of The Depths")
-            ReplicatedStorage.events.equiprod:FireServer("Rod Of The Eternal King")
-            task.wait(0.03)
-        end
-    end)
-
-    local WisdomSpam = Tabs.Exclusives:AddToggle("WisdomSpam", {Title = "Wisdom Spam", Default = false })
-    WisdomSpam:OnChanged(function()
-        local RequireRodDepths = PlayerGui.hud.safezone.equipment.rods.scroll.safezone:FindFirstChild("Rod Of The Depths")
-        local RequireRodWisdom = PlayerGui.hud.safezone.equipment.rods.scroll.safezone:FindFirstChild("Wisdom Rod")
-        if not RequireRodDepths or not RequireRodWisdom then return ShowNotification("Requirement Rod Of The Depths and Wisdom Rod") end
-        while Options.WisdomSpam.Value do
-            ReplicatedStorage.events.equiprod:FireServer("Rod Of The Depths")
-            ReplicatedStorage.events.equiprod:FireServer("Wisdom Rod")
-            task.wait(0.03)
-        end
-    end)
-
     -- // Main Tab // --
     local section = Tabs.Main:AddSection("Auto Fishing")
     local autoCast = Tabs.Main:AddToggle("autoCast", {Title = "Auto Cast", Default = false })
-    autoCast:OnChanged(function()
-        local RodName = ReplicatedStorage.playerstats[LocalPlayer.Name].Stats.rod.Value
-        if Options.autoCast.Value == true then
-            autoCastEnabled = true
-            if LocalPlayer.Backpack:FindFirstChild(RodName) then
-                LocalPlayer.Character.Humanoid:EquipTool(LocalPlayer.Backpack:FindFirstChild(RodName))
-            end
-            if LocalCharacter then
-                local tool = LocalCharacter:FindFirstChildOfClass("Tool")
-                if tool then
-                    local hasBobber = tool:FindFirstChild("bobber")
-                    if not hasBobber then
-                        if CastMode == "Legit" then
+    autoCast:OnChanged(function(Value)
+        getgenv().config.auto_cast = Value
+        spawn(function()
+            while getgenv().config.auto_cast do task.wait()
+                local RodName = ReplicatedStorage.playerstats[LocalPlayer.Name].Stats.rod.Value
+                local EquipRod = LocalPlayer.Character:FindFirstChild(RodName)
+                local Backpack = LocalPlayer:WaitForChild("Backpack")
+                if Backpack:FindFirstChild(RodName) and not EquipRod then task.wait(0.2)
+                    LocalPlayer.Character.Humanoid:EquipTool(Backpack:FindFirstChild(RodName))
+                end
+                task.wait(0.1)
+                if EquipRod then
+                    if CastMode == "Legit" then
+                        local hasBobber = EquipRod:FindFirstChild("bobber")
+                        if not hasBobber then
                             VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, LocalPlayer, 0)
                             HumanoidRootPart.ChildAdded:Connect(function()
                                 if HumanoidRootPart:FindFirstChild("power") ~= nil and HumanoidRootPart.power.powerbar.bar ~= nil then
@@ -589,25 +486,21 @@ do
                                     end)
                                 end
                             end)
-                        elseif CastMode == "Blatant" then
-                            local rod = LocalCharacter and LocalCharacter:FindFirstChildOfClass("Tool")
-                            if rod and rod:FindFirstChild("values") and string.find(rod.Name, "Rod") then
-                                task.wait(0.5)
-                                local Random = math.random(90, 99)
-                                rod.events.cast:FireServer(Random)
-                            end
                         end
+                    elseif CastMode == "Blatant" then
+                        local Random = math.random(90, 100)
+                        EquipRod.events.cast:FireServer(Random)
                     end
                 end
-                task.wait(1)
             end
-        else
-            autoCastEnabled = false
-        end
+        end)
     end)
+
+
     local autoShake = Tabs.Main:AddToggle("autoShake", {Title = "Auto Shake", Default = false })
-    autoShake:OnChanged(function()
-        if Options.autoShake.Value == true then
+    autoShake:OnChanged(function(Value)
+        getgenv().config.auto_shake = Value
+        if getgenv().config.auto_shake == true then
             autoShakeEnabled = true
             startAutoShake()
         else
@@ -616,8 +509,9 @@ do
         end
     end)
     local autoReel = Tabs.Main:AddToggle("autoReel", {Title = "Auto Reel", Default = false })
-    autoReel:OnChanged(function()
-        if Options.autoReel.Value == true then
+    autoReel:OnChanged(function(Value)
+        getgenv().config.auto_reel = Value
+        if getgenv().config.auto_reel == true then
             autoReelEnabled = true
             startAutoReel()
         else
@@ -673,10 +567,10 @@ do
         Title = "Reel Mode",
         Values = {"Normal", "Perfect", "Fail"},
         Multi = false,
-        Default = ReelFishMode,
+        Default = getgenv().config.reel_mode,
     })
     ReelMode:OnChanged(function(Value)
-        ReelFishMode = Value
+        getgenv().config.reel_mode = Value
     end)
 
     -- // Sell Tab // --
@@ -696,30 +590,91 @@ do
         end
     })
 
+    local section = Tabs.Items:AddSection("Buy Totem")
+    local SelectedBuyItems = Tabs.Items:AddDropdown("SelectedBuyItems", {
+        Title = "Totem Selected",
+        Values = {"Aurora Totem", "Sundial Totem", "Windset Totem", "Smokescreen Totem", "Tempest Totem", "Eclipse Totem", "Meteor Totem"},
+        Multi = false,
+        Default = nil,
+    })
+    SelectedBuyItems:OnChanged(function(Value)
+        SelectedTotem = Value
+    end)
+    local AmmountTotem = Tabs.Items:AddInput("AmmountTotem", {
+        Title = "Totem Ammount",
+        Default = "1",
+        Placeholder = "Ammount to purchase",
+        Numeric = false,
+        Finished = true,
+        Callback = function(Value)
+            Totem_Ammount = Value
+        end
+    })
+    Tabs.Items:AddButton({
+        Title = "Purchase Totem",
+        Callback = function()
+            ReplicatedStorage.events.purchase:FireServer(SelectedTotem, 'Item', nil, Totem_Ammount)
+        end
+    })
+
+    local section = Tabs.Items:AddSection("Buy Crate")
+    local SelectedBuyCrate = Tabs.Items:AddDropdown("SelectedBuyCrate", {
+        Title = "Crate Selected",
+        Values = {"Bait Crate", "Carbon Crate", "Common Crate", "Coral Geode", "Quality Bait Crate", "Volcanic Geode"},
+        Multi = false,
+        Default = nil,
+    })
+    SelectedBuyCrate:OnChanged(function(Value)
+        SelectedCrate = Value
+    end)
+    local AmmountCrate = Tabs.Items:AddInput("AmmountCrate", {
+        Title = "Crate Ammount",
+        Default = "1",
+        Placeholder = "Ammount to purchase",
+        Numeric = false,
+        Finished = true,
+        Callback = function(Value)
+            Crate_Ammount = Value
+        end
+    })
+    Tabs.Items:AddButton({
+        Title = "Purchase Crate",
+        Callback = function()
+            ReplicatedStorage.events.purchase:FireServer(SelectedCrate, 'Fish', nil, Crate_Ammount)
+        end
+    })
+
     local section = Tabs.Items:AddSection("Buy Items")
     local SelectedBuyItems = Tabs.Items:AddDropdown("SelectedBuyItems", {
         Title = "Item Selected",
-        Values = {"Aurora Totem", "Sundial Totem", "Windset Totem", "Smokescreen Totem", "Tempest Totem", "Eclipse Totem", "Meteor Totem"},
+        Values = {"Advanced Diving Gear", "Basic Diving Gear", "Conception Conch", "Crab Cage", "Firework", "Fish Radar", "Flippers", "GPS", "Glider", "Super Flippers", "Tidebreaker", "Witches Ingredient", },
         Multi = false,
         Default = nil,
     })
     SelectedBuyItems:OnChanged(function(Value)
         SelectedForBuy = Value
     end)
-    local AmmountForBuy = Tabs.Items:AddInput("AmmountForBuy", {
-        Title = "Item Ammount",
-        Default = "1",
-        Placeholder = "Ammount to purchase",
-        Numeric = false,
-        Finished = true,
-        Callback = function(Value)
-            Item_Ammount = Value
-        end
-    })
     Tabs.Items:AddButton({
         Title = "Purchase Item",
         Callback = function()
-            ReplicatedStorage.events.purchase:FireServer(SelectedForBuy, 'Item', nil, Item_Ammount)
+            ReplicatedStorage.events.purchase:FireServer(SelectedForBuy, 'Item', nil, 1)
+        end
+    })
+
+    local section = Tabs.Items:AddSection("Buy Rod")
+    local SelectedBuyRod = Tabs.Items:AddDropdown("SelectedBuyRod", {
+        Title = "Rod Selected",
+        Values = {"Aurora Rod", "Carbon Rod", "Destiny Rod", "Fast Rod", "Flimsy Rod", "Fortune Rod", "Kings Rod", "Long Rod", "Lucky Rod", "Midas Rod", "Mythical Rod", "Nocturnal Rod", "Phoenix Rod", "Plastic Rod", "Rapid Rod", "Reinforced Rod", "Rod Of The Depths", "Scurvy Rod", "Steady Rod", "Stone Rod", "Training Rod", "Trident Rod", "Midas", },
+        Multi = false,
+        Default = nil,
+    })
+    SelectedBuyRod:OnChanged(function(Value)
+        SelectedRod = Value
+    end)
+    Tabs.Items:AddButton({
+        Title = "Purchase Rod",
+        Callback = function()
+            ReplicatedStorage.events.purchase:FireServer(SelectedRod, 'Rod', nil, 1)
         end
     })
 
@@ -886,16 +841,6 @@ do
             FragmentTP:SetValue(nil)
         end
     end)
-
-    Tabs.Teleports:AddButton({
-        Title = "Teleport to Traveler Merchant",
-        Description = "Teleports to the Traveler Merchant.",
-        Callback = function()
-            local Merchant = game.Workspace.active:FindFirstChild("Merchant Boat")
-            if not Merchant then return ShowNotification("Not found Merchant") end
-            HumanoidRootPart.CFrame = CFrame.new(game.Workspace.active["Merchant Boat"].Boat["Merchant Boat"].r.HandlesR.Position)
-        end
-    })
 
     -- // Character Tab // --
     local section = Tabs.Misc:AddSection("Character")
@@ -1068,13 +1013,6 @@ do
         Description = "Improves FPS by applying optimizations.",
         Callback = function()
             ReduceGraphic()
-        end
-    })
-    Tabs.Misc:AddButton({
-        Title = "Less Lag",
-        Description = "Improves FPS Cr.AlluxHub",
-        Callback = function()
-            loadstring(game:HttpGet("https://pastebin.com/raw/v5cvqQ7r"))()
         end
     })
     local HoldDuration = Tabs.Misc:AddToggle("HoldDuration", {Title = "Hold Duration 0 sec", Default = false })
