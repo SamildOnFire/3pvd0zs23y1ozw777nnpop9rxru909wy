@@ -772,7 +772,7 @@ do
 
     -- // WorldEvent Tab // --
     local WorldEventTPDropdownUI = Tabs.Teleports:AddDropdown("WorldEventTPDropdownUI", {
-        Title = "Select World Event",
+        Title = "WorldEvent Teleport",
         Values = {"Strange Whirlpool", "Great Hammerhead Shark", "Great White Shark", "Whale Shark", "The Depths - Serpent", "Megalodon"},
         Multi = false,
         Default = nil,
