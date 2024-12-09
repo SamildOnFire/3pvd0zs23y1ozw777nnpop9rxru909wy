@@ -1064,7 +1064,7 @@ do
     })
 
     -- // Load Tab // --
-    local section = Tabs.Misc:AddSection("Load Scripts")
+    local section = Tabs.Misc:AddSection("Load Scripts For Dev")
     Tabs.Misc:AddButton({
         Title = "Load Infinite-Yield FE",
         Callback = function()
