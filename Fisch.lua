@@ -598,9 +598,10 @@ do
                             TextLabel.TextColor3 = Color3.fromRGB(255, 100, 245)
                             local lurerender
                             lurerender = RunService.RenderStepped:Connect(function()
-                                if LocalPlayer.Character:FindFirstChild(RodName):FindFirstChild("bobber") then
+                                if LocalPlayer.Character:FindFirstChild(RodName):FindFirstChild("bobber") and not LocalPlayer.Character:FindFirstChild(RodName).values.bite.Value then
                                     TextLabel.Text = "Lure ".. math.ceil(LocalPlayer.Character:FindFirstChild(RodName).values.lure.Value).. " %"
                                 else
+                                    TextLabel.Text = "FISHING!"
                                     lurerender:Disconnect()
                                 end
                             end)
