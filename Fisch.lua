@@ -5,7 +5,6 @@ if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
---local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/BizcuitMild/scripts/main/test.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
@@ -439,6 +438,7 @@ local allPlayerAround = GetPlayersString()
 local Tabs = { -- https://lucide.dev/icons/
     Home = Window:AddTab({ Title = "Home", Icon = "home" }),
     Main = Window:AddTab({ Title = "Main", Icon = "list" }),
+    ESP = Window:AddTab({ Title = "ESP Visuals", Icon = "list" }),
     Items = Window:AddTab({ Title = "Items", Icon = "box" }),
     Teleports = Window:AddTab({ Title = "Teleports", Icon = "map-pin" }),
     Misc = Window:AddTab({ Title = "Misc", Icon = "file-text" }),
@@ -571,6 +571,45 @@ do
     })
     ReelMode:OnChanged(function(Value)
         getgenv().config.reel_mode = Value
+    end)
+
+    local section = Tabs.ESP:AddSection("Lure Visual")
+    local LureBobber = Tabs.ESP:AddToggle("LureBobber", {Title = "Lure Bobber", Default = false })    
+    LureBobber:OnChanged(function()
+        while Options.LureBobber.Value == true do
+            local RodName = ReplicatedStorage.playerstats[LocalPlayer.Name].Stats.rod.Value
+            if LocalPlayer.Character:FindFirstChild(RodName) and LocalPlayer.Character:FindFirstChild(RodName):FindFirstChild("bobber") then
+                for i,v in pairs(LocalPlayer.Character:FindFirstChild(RodName):GetChildren()) do
+                    if v.Name == "bobber" then
+                        if not v:FindFirstChild("LureESP") then
+                            local BillboardGui = Instance.new("BillboardGui", lure)
+                            BillboardGui.Parent = v
+                            BillboardGui.Name = "LureESP"
+                            BillboardGui.AlwaysOnTop = true
+                            BillboardGui.Size = UDim2.new(12, 0, 2, 0)
+                            BillboardGui.ExtentsOffset = Vector3.new(0, 0, 0)
+                            BillboardGui.StudsOffset = Vector3.new(0, 2.25, 0)
+                            local TextLabel = Instance.new('TextLabel')
+                            TextLabel.Parent = BillboardGui
+                            TextLabel.TextSize = 20
+                            TextLabel.Font = 2
+                            TextLabel.BackgroundTransparency = 1
+                            TextLabel.Size = UDim2.new(1,0,1,0)
+                            TextLabel.TextColor3 = Color3.fromRGB(255, 100, 245)
+                            local lurerender
+                            lurerender = RunService.RenderStepped:Connect(function()
+                                if LocalPlayer.Character:FindFirstChild(RodName):FindFirstChild("bobber") then
+                                    TextLabel.Text = "Lure ".. math.ceil(LocalPlayer.Character:FindFirstChild(RodName).values.lure.Value).. " %"
+                                else
+                                    lurerender:Disconnect()
+                                end
+                            end)
+                        end
+                    end
+                end
+            end
+            task.wait()
+        end
     end)
 
     -- // Sell Tab // --
