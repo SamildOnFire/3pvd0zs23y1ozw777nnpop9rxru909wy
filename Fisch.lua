@@ -37,6 +37,20 @@ if DeviceType == "Mobile" then
     end)
 end
 
+local function playMusic()
+    local Music = Instance.new("Sound")
+    Music.SoundId = "rbxassetid://1839285890"
+    Music.Volume = 0.5
+    Music.Looped = false
+    Music.PlayOnRemove = false
+    Music.Parent = workspace
+    Music:Play()
+    Music.Ended:Connect(function()
+        Music:Destroy()
+    end)
+end
+playMusic()
+
 local Window = Fluent:CreateWindow({
     Title = game:GetService("MarketplaceService"):GetProductInfo(16732694052).Name .." | CupPink V.2 - Premium",
     SubTitle = " (discord.gg/KyfvX2HB3v)",
