@@ -437,7 +437,7 @@ local allPlayerAround = GetPlayersString()
 
 local Tabs = { -- https://lucide.dev/icons/
     Home = Window:AddTab({ Title = "Home", Icon = "home" }),
-    Exclusives = Window:AddTab({ Title = "Exclusives", Icon = "heart" }),
+    --Exclusives = Window:AddTab({ Title = "Exclusives", Icon = "heart" }),
     Main = Window:AddTab({ Title = "Main", Icon = "list" }),
     ESP = Window:AddTab({ Title = "ESP Visuals", Icon = "list" }),
     Items = Window:AddTab({ Title = "Items", Icon = "box" }),
@@ -457,6 +457,7 @@ do
         end
     })
 
+    --[[
     -- // Exclusives Tab // --
     local sectionExclus = Tabs.Exclusives:AddSection("Exclusives Features")
     Tabs.Exclusives:AddButton({
@@ -473,6 +474,7 @@ do
             game:GetService('ReplicatedStorage').events.purchase:FireServer('Aurora Totem', 'Item', nil, -2)
         end
     })
+    ]]
 
     -- // Main Tab // --
     local section = Tabs.Main:AddSection("Auto Fishing")
