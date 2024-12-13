@@ -84,7 +84,6 @@ local HumanoidRootPart = LocalCharacter:FindFirstChild("HumanoidRootPart")
 local UserPlayer = HumanoidRootPart:WaitForChild("user")
 local ActiveFolder = Workspace:FindFirstChild("active")
 local FishingZonesFolder = Workspace:FindFirstChild("zones"):WaitForChild("fishing")
-local TpSpotsFolder = Workspace:FindFirstChild("world"):WaitForChild("spawns"):WaitForChild("TpSpots")
 local NpcFolder = Workspace:FindFirstChild("world"):WaitForChild("npcs")
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local Mouse = LocalPlayer:GetMouse()
@@ -107,6 +106,36 @@ local SelectedTotemDupe = nil
 local Target
 local ZoneCastValue = false
 local fishtable = {}
+
+local Ancient = workspace.active["OceanPOI's"]["Ancient Isle"].POIHeader:Clone()
+local Forsaken = workspace.active["OceanPOI's"]["Forsaken Shores"].POIHeader:Clone()
+local Moosewood = workspace.active["OceanPOI's"].Moosewood.POIHeader:Clone()
+local Mushgrove = workspace.active["OceanPOI's"].Mushgrove.POIHeader:Clone()
+local Roslit = workspace.active["OceanPOI's"]["Roslit Bay"].POIHeader:Clone()
+local Snowcap = workspace.active["OceanPOI's"]["Snowcap Island"].POIHeader:Clone()
+local Statue = workspace.active["OceanPOI's"]["Statue Of Sovereignty"].POIHeader:Clone()
+local Sunstone = workspace.active["OceanPOI's"]["Sunstone Island"].POIHeader:Clone()
+local Terrapin = workspace.active["OceanPOI's"]["Terrapin Island"].POIHeader:Clone()
+
+Ancient.Parent = workspace.active["OceanPOI's"]["Ancient Isle"]
+Forsaken.Parent = workspace.active["OceanPOI's"]["Forsaken Shores"]
+Moosewood.Parent = workspace.active["OceanPOI's"].Moosewood
+Mushgrove.Parent = workspace.active["OceanPOI's"].Mushgrove
+Roslit.Parent = workspace.active["OceanPOI's"]["Roslit Bay"]
+Snowcap.Parent = workspace.active["OceanPOI's"]["Snowcap Island"]
+Statue.Parent = workspace.active["OceanPOI's"]["Statue Of Sovereignty"]
+Sunstone.Parent = workspace.active["OceanPOI's"]["Sunstone Island"]
+Terrapin.Parent = workspace.active["OceanPOI's"]["Terrapin Island"]
+
+Ancient.Name = "IslandName"
+Forsaken.Name = "IslandName"
+Moosewood.Name = "IslandName"
+Mushgrove.Name = "IslandName"
+Roslit.Name = "IslandName"
+Snowcap.Name = "IslandName"
+Statue.Name = "IslandName"
+Sunstone.Name = "IslandName"
+Terrapin.Name = "IslandName"
 
 getgenv().config = {
     auto_cast = nil,
@@ -453,7 +482,7 @@ local Tabs = { -- https://lucide.dev/icons/
     Home = Window:AddTab({ Title = "Home", Icon = "home" }),
     --Exclusives = Window:AddTab({ Title = "Exclusives", Icon = "heart" }),
     Main = Window:AddTab({ Title = "Main", Icon = "list" }),
-    ESP = Window:AddTab({ Title = "ESP Visuals", Icon = "list" }),
+    Visuals = Window:AddTab({ Title = "Visuals", Icon = "list" }),
     Items = Window:AddTab({ Title = "Items", Icon = "box" }),
     Teleports = Window:AddTab({ Title = "Teleports", Icon = "map-pin" }),
     Misc = Window:AddTab({ Title = "Misc", Icon = "file-text" }),
@@ -607,8 +636,8 @@ do
         getgenv().config.reel_mode = Value
     end)
 
-    local section = Tabs.ESP:AddSection("Lure Visual")
-    local LureBobber = Tabs.ESP:AddToggle("LureBobber", {Title = "Lure Bobber", Default = false })    
+    local section = Tabs.Visuals:AddSection("Lure Visual")
+    local LureBobber = Tabs.Visuals:AddToggle("LureBobber", {Title = "Lure Bobber", Default = false })    
     LureBobber:OnChanged(function()
         while Options.LureBobber.Value == true do
             local RodName = ReplicatedStorage.playerstats[LocalPlayer.Name].Stats.rod.Value
@@ -644,6 +673,24 @@ do
                 end
             end
             task.wait()
+        end
+    end)
+
+    local section = Tabs.Visuals:AddSection("Island Visual")
+    local IslandVisual = Tabs.Visuals:AddToggle("IslandVisual", {Title = "Show Island Name", Default = false })    
+    IslandVisual:OnChanged(function()
+        if Options.IslandVisual.Value == true then
+            for i,v in ipairs(workspace.active["OceanPOI's"]:GetDescendants()) do
+                if v.Name == "IslandName" then
+                    v.Enabled = true
+                end
+            end
+        else
+            for i,v in ipairs(workspace.active["OceanPOI's"]:GetDescendants()) do
+                if v.Name == "IslandName" then
+                    v.Enabled = false
+                end
+            end
         end
     end)
 
@@ -1023,6 +1070,15 @@ do
 				v.Enabled = Options.BypassRadar.Value
 			end
 		end
+        for i,v in ipairs(game:GetService("Workspace"):GetDescendants()) do
+            if v.Name == "radar1" then
+                if Options.BypassRadar.Value == true then
+                    v.MaxDistance = math.huge
+                else
+                    v.MaxDistance = 250
+                end
+            end
+        end
     end)
     local BypassGPS = Tabs.Misc:AddToggle("BypassGPS", {Title = "Bypass GPS", Default = false })
     BypassGPS:OnChanged(function()
