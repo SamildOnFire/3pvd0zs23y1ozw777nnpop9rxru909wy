@@ -97,6 +97,7 @@ local ShakeMode = "Navigation"
 local ReelMode = "Blatant"
 local CollectMode = "Teleports"
 local teleportSpots = {}
+local FindBaits = {}
 local FreezeChar = false
 local DayOnlyLoop = nil
 local BypassGpsLoop = nil
@@ -106,6 +107,7 @@ local SelectedTotemDupe = nil
 local Target
 local ZoneCastValue = false
 local fishtable = {}
+local cons = {}
 
 local Ancient = workspace.active["OceanPOI's"]["Ancient Isle"].POIHeader:Clone()
 local Forsaken = workspace.active["OceanPOI's"]["Forsaken Shores"].POIHeader:Clone()
@@ -314,6 +316,16 @@ for i, v in pairs(TpSpotsFolder:GetChildren()) do
     end
 end
 
+-- // Find Bait // --
+local BaitFolder = PlayerGui:FindFirstChild("hud"):WaitForChild("safezone"):WaitForChild("equipment"):WaitForChild("bait"):WaitForChild("scroll"):WaitForChild("safezone")
+for i, v in pairs(BaitFolder:GetChildren()) do
+    if v.ClassName == "Frame" then
+        if table.find(FindBaits, v.Name) == nil then
+            table.insert(FindBaits, v.Name)
+        end
+    end
+end
+
 -- // // // Get Position // // // --
 function GetPosition()
 	if not game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -482,7 +494,8 @@ local Tabs = { -- https://lucide.dev/icons/
     Home = Window:AddTab({ Title = "Home", Icon = "home" }),
     --Exclusives = Window:AddTab({ Title = "Exclusives", Icon = "heart" }),
     Main = Window:AddTab({ Title = "Main", Icon = "list" }),
-    Visuals = Window:AddTab({ Title = "Visuals", Icon = "list" }),
+    FishSet = Window:AddTab({ Title = "Fishing Setting", Icon = "settings-2" }),
+    Visuals = Window:AddTab({ Title = "Visuals", Icon = "eye" }),
     Items = Window:AddTab({ Title = "Items", Icon = "box" }),
     Teleports = Window:AddTab({ Title = "Teleports", Icon = "map-pin" }),
     Misc = Window:AddTab({ Title = "Misc", Icon = "file-text" }),
@@ -596,30 +609,97 @@ do
             end
         end
     end)
-    local RuinFiscConnection
-    local function RuinFischExp()
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character then
-                local tool = player.Character:FindFirstChildOfClass("Tool")
-                if tool then
-                    local rod = tool:FindFirstChild("rod/client")
-                    if rod and rod:FindFirstChild("events") and rod.events:FindFirstChild("reset") then
-                        rod.events.reset:FireServer()
-                    end
-                end
-            end
-        end
-    end
+
+    local RuinFischConnection1
+    local RuinFischConnection2
     local RuinFisch = Tabs.Main:AddToggle("RuinFisch", {Title = "Ruin Fischers Experience", Default = false })    
     RuinFisch:OnChanged(function()
         if Options.RuinFisch.Value == true then
-            RuinFiscConnection = RunService.RenderStepped:Connect(RuinFischExp)
+            for i,v in Players:GetPlayers() do
+                print(v)
+                if v == LocalPlayer then continue end
+                if v.Character then
+                    cons[v.Name] = v.Character.ChildAdded:Connect(function(Child)
+                        if string.match(Child.Name, 'Rod') then
+                            while Child.Parent == v.Character do
+                                Child.events.reset:FireServer()
+                                task.wait()
+                            end
+                        end
+                    end)
+                end
+            end
+            RuinFischConnection1 = Players.PlayerAdded:Connect(function(Player)
+                if Player == LocalPlayer then return end
+                Player.CharacterAdded:Connect(function(Character)
+                    Character.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+                    cons[Player.Name] = Character.ChildAdded:Connect(function(Child)
+                        if string.match(Child.Name, 'Rod') then
+                            while Child.Parent == Character do
+                                Child.events.reset:FireServer()
+                                task.wait()
+                            end
+                        end
+                    end)
+                end)
+            end)
+            RuinFischConnection2 = Players.PlayerRemoving:Connect(function(Player)
+                if cons[Player.Name] then
+                    cons[Player.Name]:Disconnect()
+                    cons[Player.Name] = nil
+                end
+            end)
+        else
+            if RuinFischConnection1 then
+				RuinFischConnection1:Disconnect()
+			end
+            if RuinFischConnection2 then
+                RuinFischConnection2:Disconnect()
+			end
         end
     end)
 
+    local section = Tabs.FishSet:AddSection("Bait")
+
+    local SelectBait = Tabs.FishSet:AddDropdown("SelectBait", {
+        Title = "Select Bait",
+        Values = FindBaits,
+        Multi = false,
+        Default = nil,
+    })
+    SelectBait:OnChanged(function(Value)
+        LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer(Value)
+    end)
+
+    local function GetEquippedBait()
+        local Bait = LocalPlayer.PlayerGui.hud.safezone.backpack.bait
+        if Bait then
+            Bait = Bait.Text
+            return Bait:match("Current Bait : (.+)%[")
+        end
+    end
+    local infBaitConnection
+    local infBait = Tabs.FishSet:AddToggle("infBait", {Title = "Infinite Bait", Default = false })    
+    infBait:OnChanged(function()
+        if Options.infBait.Value == true then
+			infBaitConnection = LocalPlayer.PlayerGui.ChildAdded:Connect(function(Child)
+                if Child.Name == 'reel' then
+                    local Bait = GetEquippedBait()
+                    if not Bait then return end
+                    LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer('None')
+                    repeat task.wait() until not LocalPlayer.PlayerGui:FindFirstChild('reel')
+                    LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer(Bait)
+                end
+            end)
+		else
+			if infBaitConnection then
+				infBaitConnection:Disconnect()
+			end
+        end
+    end)
     -- // Mode Tab // --
-    local section = Tabs.Main:AddSection("Mode Fishing")
-    local autoCastMode = Tabs.Main:AddDropdown("autoCastMode", {
+    local section = Tabs.FishSet:AddSection("Mode Fishing")
+    local autoCastMode = Tabs.FishSet:AddDropdown("autoCastMode", {
         Title = "Auto Cast Mode",
         Values = {"Legit", "Blatant"},
         Multi = false,
@@ -628,7 +708,7 @@ do
     autoCastMode:OnChanged(function(Value)
         CastMode = Value
     end)
-    local autoShakeMode = Tabs.Main:AddDropdown("autoShakeMode", {
+    local autoShakeMode = Tabs.FishSet:AddDropdown("autoShakeMode", {
         Title = "Auto Shake Mode",
         Values = {"Navigation", "Mouse"},
         Multi = false,
@@ -637,7 +717,7 @@ do
     autoShakeMode:OnChanged(function(Value)
         ShakeMode = Value
     end)
-    local autoReelMode = Tabs.Main:AddDropdown("autoReelMode", {
+    local autoReelMode = Tabs.FishSet:AddDropdown("autoReelMode", {
         Title = "Auto Reel Mode",
         Values = {"Legit", "Blatant"},
         Multi = false,
@@ -646,7 +726,7 @@ do
     autoReelMode:OnChanged(function(Value)
         ReelMode = Value
     end)
-    local ReelMode = Tabs.Main:AddDropdown("ReelMode", {
+    local ReelMode = Tabs.FishSet:AddDropdown("ReelMode", {
         Title = "Reel Mode",
         Values = {"Normal", "Perfect", "Fail"},
         Multi = false,
@@ -800,6 +880,7 @@ do
     })
 
     -- // DupeTotem Tab // --
+    --[[
     local section = Tabs.Items:AddSection("Dupe Totem")
     local TotemDupe = Tabs.Items:AddDropdown("TotemDupe", {
         Title = "Use Totem not gone",
@@ -829,6 +910,7 @@ do
             end
         end
     })
+    ]]
 
     -- // Treasure Tab // --
     local section = Tabs.Items:AddSection("Treasure")
@@ -976,8 +1058,13 @@ do
                             v.CanCollide = Options.WalkOnWater.Value
                         end
                     end
+                    for i,v in pairs(workspace.zones.fishing:GetChildren()) do
+                        if v.Name == "Fischmas24" then
+                            v.CanCollide = Options.WalkOnWater.Value
+                        end
+                    end
                 end
-			end
+            end
 		end
     end)
     local WalkOnWaterZone = Tabs.Misc:AddDropdown("WalkOnWaterZone", {
