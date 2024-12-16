@@ -1394,7 +1394,7 @@ do
                             [1] = SelectedPlayer
                         }
                         pcall(function()
-                            offer_event:FireServer(unpack(args)) 
+                            offer_event:FireServer(unpack(args))
                         end)
                     end
                     item.Parent = LocalPlayer.Backpack
