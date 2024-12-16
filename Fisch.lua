@@ -974,7 +974,7 @@ do
     end)
 
     local TotemTPDropdownUI = Tabs.Teleports:AddDropdown("TotemTPDropdownUI", {
-        Title = "Buy Totem Teleport",
+        Title = "Totem Teleport",
         Values = {"Aurora", "Sundial", "Windset", "Smokescreen", "Tempest", "Eclipse", "Meteor"},
         Multi = false,
         Default = nil,
