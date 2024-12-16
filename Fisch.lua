@@ -679,7 +679,7 @@ do
         end
     end
     local infBaitConnection
-    local infBait = Tabs.FishSet:AddToggle("infBait", {Title = "Infinite Bait", Default = false })    
+    local infBait = Tabs.FishSet:AddToggle("infBait", {Title = "Inf. Bait", Default = false })    
     infBait:OnChanged(function()
         if Options.infBait.Value == true then
 			infBaitConnection = LocalPlayer.PlayerGui.ChildAdded:Connect(function(Child)
