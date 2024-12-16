@@ -614,8 +614,6 @@ do
     RuinFisch:OnChanged(function()
         if Options.RuinFisch.Value == true then
             RuinFiscConnection = RunService.RenderStepped:Connect(RuinFischExp)
-        else
-            RuinFiscConnection:Disconnect()
         end
     end)
 
