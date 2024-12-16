@@ -596,6 +596,28 @@ do
             end
         end
     end)
+    local RuinFiscConnection
+    local function RuinFischExp()
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                local tool = player.Character:FindFirstChildOfClass("Tool")
+                if tool then
+                    local rod = tool:FindFirstChild("rod/client")
+                    if rod and rod:FindFirstChild("events") and rod.events:FindFirstChild("reset") then
+                        rod.events.reset:FireServer()
+                    end
+                end
+            end
+        end
+    end
+    local RuinFisch = Tabs.Main:AddToggle("RuinFisch", {Title = "Ruin Fischers Experience", Default = false })    
+    RuinFisch:OnChanged(function()
+        if Options.RuinFisch.Value == true then
+            RuinFiscConnection = RunService.RenderStepped:Connect(RuinFischExp)
+        else
+            RuinFiscConnection:Disconnect()
+        end
+    end)
 
     -- // Mode Tab // --
     local section = Tabs.Main:AddSection("Mode Fishing")
@@ -721,20 +743,10 @@ do
     SelectedBuyItems:OnChanged(function(Value)
         SelectedTotem = Value
     end)
-    local AmmountTotem = Tabs.Items:AddInput("AmmountTotem", {
-        Title = "Totem Ammount",
-        Default = "1",
-        Placeholder = "Ammount to purchase",
-        Numeric = false,
-        Finished = true,
-        Callback = function(Value)
-            Totem_Ammount = Value
-        end
-    })
     Tabs.Items:AddButton({
         Title = "Purchase Totem",
         Callback = function()
-            ReplicatedStorage.events.purchase:FireServer(SelectedTotem, 'Item', nil, Totem_Ammount)
+            ReplicatedStorage.events.purchase:FireServer(SelectedTotem, 'Item', nil, 1)
         end
     })
 
@@ -748,20 +760,10 @@ do
     SelectedBuyCrate:OnChanged(function(Value)
         SelectedCrate = Value
     end)
-    local AmmountCrate = Tabs.Items:AddInput("AmmountCrate", {
-        Title = "Crate Ammount",
-        Default = "1",
-        Placeholder = "Ammount to purchase",
-        Numeric = false,
-        Finished = true,
-        Callback = function(Value)
-            Crate_Ammount = Value
-        end
-    })
     Tabs.Items:AddButton({
         Title = "Purchase Crate",
         Callback = function()
-            ReplicatedStorage.events.purchase:FireServer(SelectedCrate, 'Fish', nil, Crate_Ammount)
+            ReplicatedStorage.events.purchase:FireServer(SelectedCrate, 'Fish', nil, 1)
         end
     })
 
