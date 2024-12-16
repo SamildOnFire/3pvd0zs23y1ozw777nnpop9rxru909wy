@@ -669,7 +669,6 @@ do
     })
     SelectBait:OnChanged(function(Value)
         LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer(Value)
-        infBait:SetValue(false)
     end)
 
     local function GetEquippedBait()
