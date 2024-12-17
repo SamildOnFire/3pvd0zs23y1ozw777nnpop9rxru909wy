@@ -317,14 +317,18 @@ for i, v in pairs(TpSpotsFolder:GetChildren()) do
 end
 
 -- // Find Bait // --
-local BaitFolder = PlayerGui:FindFirstChild("hud"):WaitForChild("safezone"):WaitForChild("equipment"):WaitForChild("bait"):WaitForChild("scroll"):WaitForChild("safezone")
-for i, v in pairs(BaitFolder:GetChildren()) do
-    if v.ClassName == "Frame" then
-        if table.find(FindBaits, v.Name) == nil then
-            table.insert(FindBaits, v.Name)
+local function RefreshBaits()
+    FindBaits = {}
+    local BaitFolder = PlayerGui:FindFirstChild("hud"):WaitForChild("safezone"):WaitForChild("equipment"):WaitForChild("bait"):WaitForChild("scroll"):WaitForChild("safezone")
+    for i, v in pairs(BaitFolder:GetChildren()) do
+        if v.ClassName == "Frame" then
+            if table.find(FindBaits, v.Name) == nil then
+                table.insert(FindBaits, v.Name)
+            end
         end
     end
 end
+RefreshBaits()
 
 -- // // // Get Position // // // --
 function GetPosition()
@@ -670,6 +674,14 @@ do
     SelectBait:OnChanged(function(Value)
         LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer(Value)
     end)
+    Tabs.FishSet:AddButton({
+        Title = "Refresh Bait",
+        Description = "",
+        Callback = function()
+            RefreshBaits()
+            SelectBait:SetValues(FindBaits)
+        end
+    })
 
     local function GetEquippedBait()
         local Bait = LocalPlayer.PlayerGui.hud.safezone.backpack.bait
