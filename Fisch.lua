@@ -6,8 +6,6 @@ if not game:IsLoaded() then
 end
 
 local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/BizcuitMild/scripts/main/test.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 
 local DeviceType = game:GetService("UserInputService").TouchEnabled and "Mobile" or "PC"
@@ -613,7 +611,7 @@ do
             end
         end
     end)
-
+    --[[
     local RuinFischConnection1
     local RuinFischConnection2
     local RuinFisch = Tabs.Main:AddToggle("RuinFisch", {Title = "Ruin Fischers Experience", Default = false })    
@@ -662,9 +660,7 @@ do
 			end
         end
     end)
-
     local section = Tabs.FishSet:AddSection("Bait")
-
     local SelectBait = Tabs.FishSet:AddDropdown("SelectBait", {
         Title = "Select Bait",
         Values = FindBaits,
@@ -709,6 +705,7 @@ do
 			end
         end
     end)
+    ]]
     -- // Mode Tab // --
     local section = Tabs.FishSet:AddSection("Mode Fishing")
     local autoCastMode = Tabs.FishSet:AddDropdown("autoCastMode", {
@@ -1329,7 +1326,14 @@ do
     Tabs.Misc:AddButton({
         Title = "Load Infinite-Yield FE",
         Callback = function()
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+            --loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/BizcuitMild/scripts/main/InfiniteYield.lua'))()
+        end
+    })
+    Tabs.Misc:AddButton({
+        Title = "Load Dex",
+        Callback = function()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/BizcuitMild/scripts/main/Dex.lua'))()
         end
     })
     Tabs.Misc:AddButton({
