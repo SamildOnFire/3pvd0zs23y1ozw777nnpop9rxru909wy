@@ -5,7 +5,7 @@ if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/BizcuitMild/scripts/main/test.lua"))()
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/SamildOnFire/scripts/main/FluentUI.lua"))()
 
 
 local DeviceType = game:GetService("UserInputService").TouchEnabled and "Mobile" or "PC"
@@ -51,7 +51,6 @@ playMusic()
 
 local Window = Fluent:CreateWindow({
     Title = game:GetService("MarketplaceService"):GetProductInfo(16732694052).Name .." | CupPink V.2 - Premium",
-    SubTitle = " (discord.gg/KyfvX2HB3v)",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = false, -- The blur may be detectable, setting this to false disables blur entirely
@@ -149,7 +148,8 @@ function ShowNotification(String)
     Fluent:Notify({
         Title = "CupPink Hub",
         Content = String,
-        Duration = 5
+        Duration = 5,
+        Icon = "rbxassetid://119937569996752"
     })
 end
 
@@ -493,7 +493,6 @@ local allPlayerAround = GetPlayersString()
 -- // // // Tabs Gui // // // --
 
 local Tabs = { -- https://lucide.dev/icons/
-    Home = Window:AddTab({ Title = "Home", Icon = "home" }),
     --Exclusives = Window:AddTab({ Title = "Exclusives", Icon = "heart" }),
     Main = Window:AddTab({ Title = "Main", Icon = "list" }),
     FishSet = Window:AddTab({ Title = "Fishing Setting", Icon = "settings-2" }),
@@ -507,33 +506,6 @@ local Tabs = { -- https://lucide.dev/icons/
 local Options = Fluent.Options
 
 do
-    Tabs.Home:AddButton({
-        Title = "Copy Discord link",
-        Description = "Join our main discord!",
-        Callback = function()
-            setclipboard("https://discord.gg/KyfvX2HB3v")
-        end
-    })
-
-    --[[
-    -- // Exclusives Tab // --
-    local sectionExclus = Tabs.Exclusives:AddSection("Exclusives Features")
-    Tabs.Exclusives:AddButton({
-        Title = "Teleport Server Dupe",
-        Description = "",
-        Callback = function()
-            game:GetService('TeleportService'):Teleport(128543442402268, LocalPlayer)
-        end
-    })
-    Tabs.Exclusives:AddButton({
-        Title = "Get C$ 1M",
-        Description = "",
-        Callback = function()
-            game:GetService('ReplicatedStorage').events.purchase:FireServer('Aurora Totem', 'Item', nil, -2)
-        end
-    })
-    ]]
-
     -- // Main Tab // --
     local section = Tabs.Main:AddSection("Auto Fishing")
     local autoCast = Tabs.Main:AddToggle("autoCast", {Title = "Auto Cast", Default = false })
@@ -611,101 +583,7 @@ do
             end
         end
     end)
-    --[[
-    local RuinFischConnection1
-    local RuinFischConnection2
-    local RuinFisch = Tabs.Main:AddToggle("RuinFisch", {Title = "Ruin Fischers Experience", Default = false })    
-    RuinFisch:OnChanged(function()
-        if Options.RuinFisch.Value == true then
-            for i,v in Players:GetPlayers() do
-                print(v)
-                if v == LocalPlayer then continue end
-                if v.Character then
-                    cons[v.Name] = v.Character.ChildAdded:Connect(function(Child)
-                        if string.match(Child.Name, 'Rod') then
-                            while Child.Parent == v.Character do
-                                Child.events.reset:FireServer()
-                                task.wait()
-                            end
-                        end
-                    end)
-                end
-            end
-            RuinFischConnection1 = Players.PlayerAdded:Connect(function(Player)
-                if Player == LocalPlayer then return end
-                Player.CharacterAdded:Connect(function(Character)
-                    Character.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
-                    cons[Player.Name] = Character.ChildAdded:Connect(function(Child)
-                        if string.match(Child.Name, 'Rod') then
-                            while Child.Parent == Character do
-                                Child.events.reset:FireServer()
-                                task.wait()
-                            end
-                        end
-                    end)
-                end)
-            end)
-            RuinFischConnection2 = Players.PlayerRemoving:Connect(function(Player)
-                if cons[Player.Name] then
-                    cons[Player.Name]:Disconnect()
-                    cons[Player.Name] = nil
-                end
-            end)
-        else
-            if RuinFischConnection1 then
-				RuinFischConnection1:Disconnect()
-			end
-            if RuinFischConnection2 then
-                RuinFischConnection2:Disconnect()
-			end
-        end
-    end)
-    local section = Tabs.FishSet:AddSection("Bait")
-    local SelectBait = Tabs.FishSet:AddDropdown("SelectBait", {
-        Title = "Select Bait",
-        Values = FindBaits,
-        Multi = false,
-        Default = nil,
-    })
-    SelectBait:OnChanged(function(Value)
-        LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer(Value)
-    end)
-    Tabs.FishSet:AddButton({
-        Title = "Refresh Bait",
-        Description = "",
-        Callback = function()
-            RefreshBaits()
-            SelectBait:SetValues(FindBaits)
-        end
-    })
 
-    local function GetEquippedBait()
-        local Bait = LocalPlayer.PlayerGui.hud.safezone.backpack.bait
-        if Bait then
-            Bait = Bait.Text
-            return Bait:match("Current Bait : (.+)%[")
-        end
-    end
-    local infBaitConnection
-    local infBait = Tabs.FishSet:AddToggle("infBait", {Title = "Inf. Bait", Default = false })    
-    infBait:OnChanged(function()
-        if Options.infBait.Value == true then
-			infBaitConnection = LocalPlayer.PlayerGui.ChildAdded:Connect(function(Child)
-                if Child.Name == 'reel' then
-                    local Bait = GetEquippedBait()
-                    if not Bait then return end
-                    LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer('None')
-                    repeat task.wait() until not LocalPlayer.PlayerGui:FindFirstChild('reel')
-                    LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer(Bait)
-                end
-            end)
-		else
-			if infBaitConnection then
-				infBaitConnection:Disconnect()
-			end
-        end
-    end)
-    ]]
     -- // Mode Tab // --
     local section = Tabs.FishSet:AddSection("Mode Fishing")
     local autoCastMode = Tabs.FishSet:AddDropdown("autoCastMode", {
@@ -840,7 +718,7 @@ do
     local section = Tabs.Items:AddSection("Buy Crate")
     local SelectedBuyCrate = Tabs.Items:AddDropdown("SelectedBuyCrate", {
         Title = "Crate Selected",
-        Values = {"Bait Crate", "Carbon Crate", "Common Crate", "Coral Geode", "Quality Bait Crate", "Volcanic Geode"},
+        Values = {"Bait Crate", "Carbon Crate", "Common Crate", "Coral Geode", "Quality Bait Crate", "Volcanic Geode", "Festive Bait Crate"},
         Multi = false,
         Default = nil,
     })
@@ -887,39 +765,6 @@ do
             ReplicatedStorage.events.purchase:FireServer(SelectedRod, 'Rod', nil, 1)
         end
     })
-
-    -- // DupeTotem Tab // --
-    --[[
-    local section = Tabs.Items:AddSection("Dupe Totem")
-    local TotemDupe = Tabs.Items:AddDropdown("TotemDupe", {
-        Title = "Use Totem not gone",
-        Values = {"Aurora Totem", "Sundial Totem", "Windset Totem", "Smokescreen Totem", "Tempest Totem", "Eclipse Totem", "Meteor Totem"},
-        Multi = false,
-        Default = nil,
-    })
-    TotemDupe:OnChanged(function(Value)
-        SelectedTotemDupe = Value
-    end)
-    Tabs.Items:AddButton({
-        Title = "Use Totem",
-        Description = "This still uses/consumes your totem but if you only have 1 you can infinitely use that 1 even if its gone from your inventory",
-        Callback = function()
-            for i, v in pairs(LocalPlayer.Backpack:GetChildren()) do 
-                if v:FindFirstChild("rod/client") then
-                    v.Parent = LocalPlayer.Character
-                end
-            end
-            game.Players.LocalPlayer.Backpack:WaitForChild(SelectedTotemDupe).Parent = game.Players.LocalPlayer.Character
-            game.Players.LocalPlayer.Character:WaitForChild(SelectedTotemDupe):Activate()
-            task.wait(2)
-            for i,v in pairs(LocalPlayer.Character:GetChildren()) do 
-                if v:IsA("Tool") then
-                    v.Parent = LocalPlayer.Backpack
-                end
-            end
-        end
-    })
-    ]]
 
     -- // Treasure Tab // --
     local section = Tabs.Items:AddSection("Treasure")
@@ -1442,6 +1287,12 @@ do
 end
 
 Window:SelectTab(1)
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "CupPink",
+    Text = "Executed!",
+    Icon = "rbxassetid://119937569996752",
+    Duration = 5
+})
 Fluent:Notify({
     Title = "CupPink",
     Content = "Executed!",
