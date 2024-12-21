@@ -272,11 +272,11 @@ local function startAutoReel()
         local playerbar = bar and bar:FindFirstChild("playerbar")
         playerbar:GetPropertyChangedSignal('Position'):Wait()
         if getgenv().config.reel_mode == "Normal" then
-            game.ReplicatedStorage:WaitForChild("Link"):WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
+            game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
         elseif getgenv().config.reel_mode == "Perfect" then
-            game.ReplicatedStorage:WaitForChild("Link"):WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, true)
+            game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, true)
         elseif getgenv().config.reel_mode == "Fail" then
-            game.ReplicatedStorage:WaitForChild("Link"):WaitForChild("events"):WaitForChild("reelfinished"):FireServer(0)
+            game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(0)
         end
     end
 end
@@ -497,7 +497,7 @@ local allPlayerAround = GetPlayersString()
 -- // // // Tabs Gui // // // --
 
 local Tabs = { -- https://lucide.dev/icons/
-    --Exclusives = Window:AddTab({ Title = "Exclusives", Icon = "heart" }),
+    Exclusives = Window:AddTab({ Title = "Exclusives", Icon = "heart" }),
     Main = Window:AddTab({ Title = "Main", Icon = "list" }),
     FishSet = Window:AddTab({ Title = "Fishing Setting", Icon = "settings-2" }),
     Visuals = Window:AddTab({ Title = "Visuals", Icon = "eye" }),
@@ -510,6 +510,9 @@ local Tabs = { -- https://lucide.dev/icons/
 local Options = Fluent.Options
 
 do
+    -- // Exclusives Tab // --
+    local section = Tabs.Exclusives:AddSection("Exclusives Featues")
+
     -- // Main Tab // --
     local section = Tabs.Main:AddSection("Auto Fishing")
     local autoCast = Tabs.Main:AddToggle("autoCast", {Title = "Auto Cast", Default = false })
@@ -517,7 +520,7 @@ do
         getgenv().config.auto_cast = Value
         spawn(function()
             while getgenv().config.auto_cast do task.wait()
-                local RodName = ReplicatedStorage.Link.playerstats[LocalPlayer.Name].Stats.rod.Value
+                local RodName = ReplicatedStorage.playerstats[LocalPlayer.Name].Stats.rod.Value
                 local EquipRod = LocalPlayer.Character:FindFirstChild(RodName)
                 local Backpack = LocalPlayer:WaitForChild("Backpack")
                 if Backpack:FindFirstChild(RodName) and not EquipRod then task.wait(0.2)
@@ -617,7 +620,7 @@ do
                     if not catch then
                         task.wait(2)
                         catch = true
-                        local RodName = ReplicatedStorage.Link.playerstats[LocalPlayer.Name].Stats.rod.Value
+                        local RodName = ReplicatedStorage.playerstats[LocalPlayer.Name].Stats.rod.Value
                         if RodName and Player.Character:FindFirstChild(RodName) then
                             local resetEvent = Player.Character[RodName].events:FindFirstChild("reset")
                             if resetEvent then
@@ -775,7 +778,7 @@ do
     local LureBobber = Tabs.Visuals:AddToggle("LureBobber", {Title = "Lure Bobber", Default = false })    
     LureBobber:OnChanged(function()
         while Options.LureBobber.Value == true do
-            local RodName = ReplicatedStorage.Link.playerstats[LocalPlayer.Name].Stats.rod.Value
+            local RodName = ReplicatedStorage.playerstats[LocalPlayer.Name].Stats.rod.Value
             if LocalPlayer.Character:FindFirstChild(RodName) and LocalPlayer.Character:FindFirstChild(RodName):FindFirstChild("bobber") then
                 for i,v in pairs(LocalPlayer.Character:FindFirstChild(RodName):GetChildren()) do
                     if v.Name == "bobber" then
@@ -859,7 +862,7 @@ do
     Tabs.Items:AddButton({
         Title = "Purchase Totem",
         Callback = function()
-            ReplicatedStorage.Link.events.purchase:FireServer(SelectedTotem, 'Item', nil, 1)
+            ReplicatedStorage.events.purchase:FireServer(SelectedTotem, 'Item', nil, 1)
         end
     })
 
@@ -876,14 +879,14 @@ do
     Tabs.Items:AddButton({
         Title = "Purchase Crate",
         Callback = function()
-            ReplicatedStorage.Link.events.purchase:FireServer(SelectedCrate, 'Fish', nil, 1)
+            ReplicatedStorage.events.purchase:FireServer(SelectedCrate, 'Fish', nil, 1)
         end
     })
 
     local section = Tabs.Items:AddSection("Buy Items")
     local SelectedBuyItems = Tabs.Items:AddDropdown("SelectedBuyItems", {
         Title = "Item Selected",
-        Values = {"Advanced Diving Gear", "Basic Diving Gear", "Conception Conch", "Crab Cage", "Firework", "Fish Radar", "Flippers", "GPS", "Glider", "Super Flippers", "Tidebreaker", "Witches Ingredient", },
+        Values = {"Advanced Glider", "Advanced Oxygen Tank", "Intermediate Oxygen Tank", "Beginner Oxygen Tank", "Pickaxe", "Winter Cloak", "Advanced Diving Gear", "Basic Diving Gear", "Conception Conch", "Crab Cage", "Firework", "Fish Radar", "Flippers", "GPS", "Glider", "Super Flippers", "Tidebreaker", "Witches Ingredient",},
         Multi = false,
         Default = nil,
     })
@@ -893,7 +896,7 @@ do
     Tabs.Items:AddButton({
         Title = "Purchase Item",
         Callback = function()
-            ReplicatedStorage.Link.events.purchase:FireServer(SelectedForBuy, 'Item', nil, 1)
+            ReplicatedStorage.events.purchase:FireServer(SelectedForBuy, 'Item', nil, 1)
         end
     })
 
@@ -910,7 +913,7 @@ do
     Tabs.Items:AddButton({
         Title = "Purchase Rod",
         Callback = function()
-            ReplicatedStorage.Link.events.purchase:FireServer(SelectedRod, 'Rod', nil, 1)
+            ReplicatedStorage.events.purchase:FireServer(SelectedRod, 'Rod', nil, 1)
         end
     })
 
@@ -1224,7 +1227,7 @@ do
         end
     end)
 
-    local DisableOxygen = Tabs.Misc:AddToggle("DisableOxygen", {Title = "Disable Oxygen and Temperature", Default = false })
+    local DisableOxygen = Tabs.Misc:AddToggle("DisableOxygen", {Title = "Disable Oxygen and Temperature", Default = true })
     DisableOxygen:OnChanged(function()
         LocalPlayer.Character.client.oxygen.Disabled = Options.DisableOxygen.Value
         LocalPlayer.Character.client["oxygen(peaks)"].Disabled = Options.DisableOxygen.Value
