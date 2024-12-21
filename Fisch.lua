@@ -687,6 +687,90 @@ do
         getgenv().config.reel_mode = Value
     end)
 
+    local section = Tabs.Visuals:AddSection("Visual Game")
+    local BypassRadar = Tabs.Visuals:AddToggle("BypassRadar", {Title = "Bypass Fish Radar", Default = false })
+    BypassRadar:OnChanged(function()
+        for _, v in pairs(game:GetService("CollectionService"):GetTagged("radarTag")) do
+			if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
+				v.Enabled = Options.BypassRadar.Value
+			end
+		end
+        for i,v in ipairs(game:GetService("Workspace"):GetDescendants()) do
+            if v.Name == "radar1" then
+                if Options.BypassRadar.Value == true then
+                    v.MaxDistance = math.huge
+                else
+                    v.MaxDistance = 250
+                end
+            end
+        end
+    end)
+    local BypassGPS = Tabs.Visuals:AddToggle("BypassGPS", {Title = "Bypass GPS", Default = false })
+    BypassGPS:OnChanged(function()
+        if Options.BypassGPS.Value == true then
+            local XyzClone = game:GetService("ReplicatedStorage").resources.items.items.GPS.GPS.gpsMain.xyz:Clone()
+			XyzClone.Parent = game.Players.LocalPlayer.PlayerGui:WaitForChild("hud"):WaitForChild("safezone"):WaitForChild("backpack")
+			local Pos = GetPosition()
+			local StringInput = string.format("%s, %s, %s", ExportValue(Pos[1]), ExportValue(Pos[2]), ExportValue(Pos[3]))
+			XyzClone.Text = "<font color='#ff4949'>X</font><font color = '#a3ff81'>Y</font><font color = '#626aff'>Z</font>: "..StringInput
+			BypassGpsLoop = game:GetService("RunService").Heartbeat:Connect(function()
+				local Pos = GetPosition()
+				StringInput = string.format("%s, %s, %s", ExportValue(Pos[1]), ExportValue(Pos[2]), ExportValue(Pos[3]))
+				XyzClone.Text = "<font color='#ff4949'>X</font><font color = '#a3ff81'>Y</font><font color = '#626aff'>Z</font> : "..StringInput
+			end)
+		else
+			if PlayerGui.hud.safezone.backpack:FindFirstChild("xyz") then
+				PlayerGui.hud.safezone.backpack:FindFirstChild("xyz"):Destroy()
+			end
+			if BypassGpsLoop then
+				BypassGpsLoop:Disconnect()
+				BypassGpsLoop = nil
+			end
+        end
+    end)
+    local RemoveFog = Tabs.Visuals:AddToggle("RemoveFog", {Title = "Remove Fog", Default = false })
+    RemoveFog:OnChanged(function()
+        if Options.RemoveFog.Value == true then
+            if game:GetService("Lighting"):FindFirstChild("Sky") then
+                game:GetService("Lighting"):FindFirstChild("Sky").Parent = game:GetService("Lighting").bloom
+            end
+        else
+            if game:GetService("Lighting").bloom:FindFirstChild("Sky") then
+                game:GetService("Lighting").bloom:FindFirstChild("Sky").Parent = game:GetService("Lighting")
+            end
+        end
+    end)
+    local DayOnly = Tabs.Visuals:AddToggle("DayOnly", {Title = "Day Only", Default = false })
+    DayOnly:OnChanged(function()
+        if Options.DayOnly.Value == true then
+            DayOnlyLoop = RunService.Heartbeat:Connect(function()
+				game:GetService("Lighting").TimeOfDay = "12:00:00"
+			end)
+		else
+			if DayOnlyLoop then
+				DayOnlyLoop:Disconnect()
+				DayOnlyLoop = nil
+			end
+        end
+    end)
+
+    local InfZoom = Tabs.Visuals:AddToggle("InfZoom", {Title = "Inf. Zoom", Default = false })
+    InfZoom:OnChanged(function()
+        if Options.InfZoom.Value == true then
+            LocalPlayer.CameraMaxZoomDistance = 100000
+		else
+			LocalPlayer.CameraMaxZoomDistance = 36
+        end
+    end)
+
+    Tabs.Visuals:AddButton({
+        Title = "Reduce Graphic",
+        Description = "Improves FPS by applying optimizations.",
+        Callback = function()
+            ReduceGraphic()
+        end
+    })
+
     local section = Tabs.Visuals:AddSection("Lure Visual")
     local LureBobber = Tabs.Visuals:AddToggle("LureBobber", {Title = "Lure Bobber", Default = false })    
     LureBobber:OnChanged(function()
@@ -893,7 +977,7 @@ do
 
     local TotemTPDropdownUI = Tabs.Teleports:AddDropdown("TotemTPDropdownUI", {
         Title = "Totem Teleport",
-        Values = {"Aurora", "Sundial", "Windset", "Smokescreen", "Tempest", "Eclipse", "Meteor"},
+        Values = {"Aurora", "Sundial", "Windset", "Smokescreen", "Tempest", "Eclipse", "Meteor", "Avalanche", "Blizzard"},
         Multi = false,
         Default = nil,
     })
@@ -919,6 +1003,12 @@ do
             TotemTPDropdownUI:SetValue(nil)
         elseif SelectedTotem == "Meteor" then
             HumanoidRootPart.CFrame = CFrame.new(-1944.4, 275.7, 230.9)
+            TotemTPDropdownUI:SetValue(nil)
+        elseif SelectedTotem == "Avalanche" then
+            HumanoidRootPart.CFrame = CFrame.new(19708.6, 467.6, 6057.5)
+            TotemTPDropdownUI:SetValue(nil)
+        elseif SelectedTotem == "Blizzard" then
+            HumanoidRootPart.CFrame = CFrame.new(20146.2, 742.9, 5805.0)
             TotemTPDropdownUI:SetValue(nil)
         end
     end)
@@ -1081,7 +1171,7 @@ do
 
     -- // Misc Tab // --
     local section = Tabs.Misc:AddSection("Misc")
-    local FastClick = Tabs.Misc:AddToggle("FastClick", {Title = "Fast Click", Default = false })
+    local FastClick = Tabs.Misc:AddToggle("FastClick", {Title = "Fast Click (Bait Crate)", Default = false })
     FastClick:OnChanged(function()
         while Options.FastClick.Value == true do
             task.wait(FastClickDelay)
@@ -1098,88 +1188,6 @@ do
         Rounding = 1,
         Callback = function(Value)
             FastClickDelay = Value
-        end
-    })
-    local BypassRadar = Tabs.Misc:AddToggle("BypassRadar", {Title = "Bypass Fish Radar", Default = false })
-    BypassRadar:OnChanged(function()
-        for _, v in pairs(game:GetService("CollectionService"):GetTagged("radarTag")) do
-			if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
-				v.Enabled = Options.BypassRadar.Value
-			end
-		end
-        for i,v in ipairs(game:GetService("Workspace"):GetDescendants()) do
-            if v.Name == "radar1" then
-                if Options.BypassRadar.Value == true then
-                    v.MaxDistance = math.huge
-                else
-                    v.MaxDistance = 250
-                end
-            end
-        end
-    end)
-    local BypassGPS = Tabs.Misc:AddToggle("BypassGPS", {Title = "Bypass GPS", Default = false })
-    BypassGPS:OnChanged(function()
-        if Options.BypassGPS.Value == true then
-            local XyzClone = game:GetService("ReplicatedStorage").resources.items.items.GPS.GPS.gpsMain.xyz:Clone()
-			XyzClone.Parent = game.Players.LocalPlayer.PlayerGui:WaitForChild("hud"):WaitForChild("safezone"):WaitForChild("backpack")
-			local Pos = GetPosition()
-			local StringInput = string.format("%s, %s, %s", ExportValue(Pos[1]), ExportValue(Pos[2]), ExportValue(Pos[3]))
-			XyzClone.Text = "<font color='#ff4949'>X</font><font color = '#a3ff81'>Y</font><font color = '#626aff'>Z</font>: "..StringInput
-			BypassGpsLoop = game:GetService("RunService").Heartbeat:Connect(function()
-				local Pos = GetPosition()
-				StringInput = string.format("%s, %s, %s", ExportValue(Pos[1]), ExportValue(Pos[2]), ExportValue(Pos[3]))
-				XyzClone.Text = "<font color='#ff4949'>X</font><font color = '#a3ff81'>Y</font><font color = '#626aff'>Z</font> : "..StringInput
-			end)
-		else
-			if PlayerGui.hud.safezone.backpack:FindFirstChild("xyz") then
-				PlayerGui.hud.safezone.backpack:FindFirstChild("xyz"):Destroy()
-			end
-			if BypassGpsLoop then
-				BypassGpsLoop:Disconnect()
-				BypassGpsLoop = nil
-			end
-        end
-    end)
-    local RemoveFog = Tabs.Misc:AddToggle("RemoveFog", {Title = "Remove Fog", Default = false })
-    RemoveFog:OnChanged(function()
-        if Options.RemoveFog.Value == true then
-            if game:GetService("Lighting"):FindFirstChild("Sky") then
-                game:GetService("Lighting"):FindFirstChild("Sky").Parent = game:GetService("Lighting").bloom
-            end
-        else
-            if game:GetService("Lighting").bloom:FindFirstChild("Sky") then
-                game:GetService("Lighting").bloom:FindFirstChild("Sky").Parent = game:GetService("Lighting")
-            end
-        end
-    end)
-    local DayOnly = Tabs.Misc:AddToggle("DayOnly", {Title = "Day Only", Default = false })
-    DayOnly:OnChanged(function()
-        if Options.DayOnly.Value == true then
-            DayOnlyLoop = RunService.Heartbeat:Connect(function()
-				game:GetService("Lighting").TimeOfDay = "12:00:00"
-			end)
-		else
-			if DayOnlyLoop then
-				DayOnlyLoop:Disconnect()
-				DayOnlyLoop = nil
-			end
-        end
-    end)
-
-    local InfZoom = Tabs.Misc:AddToggle("InfZoom", {Title = "Inf. Zoom", Default = false })
-    InfZoom:OnChanged(function()
-        if Options.InfZoom.Value == true then
-            LocalPlayer.CameraMaxZoomDistance = 100000
-		else
-			LocalPlayer.CameraMaxZoomDistance = 36
-        end
-    end)
-
-    Tabs.Misc:AddButton({
-        Title = "Reduce Graphic",
-        Description = "Improves FPS by applying optimizations.",
-        Callback = function()
-            ReduceGraphic()
         end
     })
     local HoldDuration = Tabs.Misc:AddToggle("HoldDuration", {Title = "Hold Duration 0 sec", Default = false })
@@ -1216,9 +1224,10 @@ do
         end
     end)
 
-    local DisableOxygen = Tabs.Misc:AddToggle("DisableOxygen", {Title = "Disable Oxygen and Temperature", Default = true })
+    local DisableOxygen = Tabs.Misc:AddToggle("DisableOxygen", {Title = "Disable Oxygen and Temperature", Default = false })
     DisableOxygen:OnChanged(function()
         LocalPlayer.Character.client.oxygen.Disabled = Options.DisableOxygen.Value
+        LocalPlayer.Character.client["oxygen(peaks)"].Disabled = Options.DisableOxygen.Value
         LocalPlayer.Character.client.temperature.Disabled = Options.DisableOxygen.Value
     end)
 
