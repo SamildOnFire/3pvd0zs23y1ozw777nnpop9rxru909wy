@@ -50,7 +50,8 @@ end
 playMusic()
 
 local Window = Fluent:CreateWindow({
-    Title = game:GetService("MarketplaceService"):GetProductInfo(16732694052).Name .." | CupPink V.2 - Premium",
+    Title = game:GetService("MarketplaceService"):GetProductInfo(16732694052).Name .." | CupPink - Premium",
+    SubTitle = " v.0.1.0",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = false, -- The blur may be detectable, setting this to false disables blur entirely
@@ -141,6 +142,7 @@ getgenv().config = {
     auto_shake = nil,
     auto_reel = nil,
     reel_mode = "Normal",
+    auto_nuke = nil,
 }
 
 -- // // // Functions // // // --
@@ -158,11 +160,13 @@ game.Players.LocalPlayer.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
+--[[
 local Ant1AFKConnection
 local function autoAnt1AFK()
     game:GetService("ReplicatedStorage"):WaitForChild("events"):WaitForChild("afk"):FireServer(false)
 end
 Ant1AFKConnection = RunService.RenderStepped:Connect(autoAnt1AFK)
+]]
 
 -- // // // Auto Shake // // // --
 local autoShakeEnabled = false
@@ -175,7 +179,7 @@ local function autoShake()
             if not shakeui then return end
             local safezone = shakeui:FindFirstChild("safezone")
             local button = safezone and safezone:FindFirstChild("button")
-            task.wait(0.2)
+            button.Selectable = true
             GuiService.SelectedObject = button
             if GuiService.SelectedObject == button then
                 VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Return, false, game)
@@ -268,11 +272,11 @@ local function startAutoReel()
         local playerbar = bar and bar:FindFirstChild("playerbar")
         playerbar:GetPropertyChangedSignal('Position'):Wait()
         if getgenv().config.reel_mode == "Normal" then
-            game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
+            game.ReplicatedStorage:WaitForChild("Link"):WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, false)
         elseif getgenv().config.reel_mode == "Perfect" then
-            game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, true)
+            game.ReplicatedStorage:WaitForChild("Link"):WaitForChild("events"):WaitForChild("reelfinished"):FireServer(100, true)
         elseif getgenv().config.reel_mode == "Fail" then
-            game.ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(0)
+            game.ReplicatedStorage:WaitForChild("Link"):WaitForChild("events"):WaitForChild("reelfinished"):FireServer(0)
         end
     end
 end
@@ -513,7 +517,7 @@ do
         getgenv().config.auto_cast = Value
         spawn(function()
             while getgenv().config.auto_cast do task.wait()
-                local RodName = ReplicatedStorage.playerstats[LocalPlayer.Name].Stats.rod.Value
+                local RodName = ReplicatedStorage.Link.playerstats[LocalPlayer.Name].Stats.rod.Value
                 local EquipRod = LocalPlayer.Character:FindFirstChild(RodName)
                 local Backpack = LocalPlayer:WaitForChild("Backpack")
                 if Backpack:FindFirstChild(RodName) and not EquipRod then task.wait(0.2)
@@ -569,6 +573,66 @@ do
             stopAutoReel()
         end
     end)
+
+    local AutoNuke = Tabs.Main:AddToggle("AutoNuke", {Title = "Auto Nuke MiniGame", Default = true })
+    AutoNuke:OnChanged(function(Value)
+        task.spawn(function()
+            getgenv().config.auto_nuke = AutoNuke.Value
+            local Player = game:GetService("Players").LocalPlayer
+            local NukeMinigame = Player.PlayerGui:FindFirstChild("NukeMinigame")
+            local catch = true -- Start with catch enabled
+        
+            local function pressButton(button)
+                if button and button:IsA("GuiButton") then
+                    local X = button.AbsolutePosition.X
+                    local Y = button.AbsolutePosition.Y
+                    local XS = button.AbsoluteSize.X
+                    local YS = button.AbsoluteSize.Y
+        
+                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(X + XS / 2, Y + YS / 2, 0, true, button, 1)
+                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(X + XS / 2, Y + YS / 2, 0, false, button, 1)
+                end
+            end
+        
+            while AutoNuke.Value do
+                task.wait(0.1)
+        
+                if NukeMinigame and NukeMinigame.Enabled then
+                    catch = false
+        
+                    local Pointer = NukeMinigame:FindFirstChild("Center") and NukeMinigame.Center.Marker.Pointer
+                    local LeftButton = NukeMinigame.Center:FindFirstChild("Left")
+                    local RightButton = NukeMinigame.Center:FindFirstChild("Right")
+        
+                    if Pointer and Pointer:IsA("GuiObject") then
+                        local rotation = Pointer.Rotation
+        
+                        if rotation > 35 then
+                            pressButton(LeftButton)
+                        elseif rotation < -35 then
+                            pressButton(RightButton)
+                        end
+                    end
+                else
+                    if not catch then
+                        task.wait(2)
+                        catch = true
+                        local RodName = ReplicatedStorage.Link.playerstats[LocalPlayer.Name].Stats.rod.Value
+                        if RodName and Player.Character:FindFirstChild(RodName) then
+                            local resetEvent = Player.Character[RodName].events:FindFirstChild("reset")
+                            if resetEvent then
+                                resetEvent:FireServer()
+                            end
+                        end
+                    end
+                end
+            end
+        end) 
+    end)
+
+
+
+
     local FreezeCharacter = Tabs.Main:AddToggle("FreezeCharacter", {Title = "Freeze Character", Default = false })
     FreezeCharacter:OnChanged(function()
         local oldpos = HumanoidRootPart.CFrame
@@ -627,7 +691,7 @@ do
     local LureBobber = Tabs.Visuals:AddToggle("LureBobber", {Title = "Lure Bobber", Default = false })    
     LureBobber:OnChanged(function()
         while Options.LureBobber.Value == true do
-            local RodName = ReplicatedStorage.playerstats[LocalPlayer.Name].Stats.rod.Value
+            local RodName = ReplicatedStorage.Link.playerstats[LocalPlayer.Name].Stats.rod.Value
             if LocalPlayer.Character:FindFirstChild(RodName) and LocalPlayer.Character:FindFirstChild(RodName):FindFirstChild("bobber") then
                 for i,v in pairs(LocalPlayer.Character:FindFirstChild(RodName):GetChildren()) do
                     if v.Name == "bobber" then
@@ -701,7 +765,7 @@ do
     local section = Tabs.Items:AddSection("Buy Totem")
     local SelectedBuyItems = Tabs.Items:AddDropdown("SelectedBuyItems", {
         Title = "Totem Selected",
-        Values = {"Aurora Totem", "Sundial Totem", "Windset Totem", "Smokescreen Totem", "Tempest Totem", "Eclipse Totem", "Meteor Totem"},
+        Values = {"Aurora Totem", "Sundial Totem", "Windset Totem", "Smokescreen Totem", "Tempest Totem", "Eclipse Totem", "Meteor Totem", "Avalanche Totem", "Blizzard Totem"},
         Multi = false,
         Default = nil,
     })
@@ -711,7 +775,7 @@ do
     Tabs.Items:AddButton({
         Title = "Purchase Totem",
         Callback = function()
-            ReplicatedStorage.events.purchase:FireServer(SelectedTotem, 'Item', nil, 1)
+            ReplicatedStorage.Link.events.purchase:FireServer(SelectedTotem, 'Item', nil, 1)
         end
     })
 
@@ -728,7 +792,7 @@ do
     Tabs.Items:AddButton({
         Title = "Purchase Crate",
         Callback = function()
-            ReplicatedStorage.events.purchase:FireServer(SelectedCrate, 'Fish', nil, 1)
+            ReplicatedStorage.Link.events.purchase:FireServer(SelectedCrate, 'Fish', nil, 1)
         end
     })
 
@@ -745,14 +809,14 @@ do
     Tabs.Items:AddButton({
         Title = "Purchase Item",
         Callback = function()
-            ReplicatedStorage.events.purchase:FireServer(SelectedForBuy, 'Item', nil, 1)
+            ReplicatedStorage.Link.events.purchase:FireServer(SelectedForBuy, 'Item', nil, 1)
         end
     })
 
     local section = Tabs.Items:AddSection("Buy Rod")
     local SelectedBuyRod = Tabs.Items:AddDropdown("SelectedBuyRod", {
         Title = "Rod Selected",
-        Values = {"Aurora Rod", "Carbon Rod", "Destiny Rod", "Fast Rod", "Flimsy Rod", "Fortune Rod", "Kings Rod", "Long Rod", "Lucky Rod", "Midas Rod", "Mythical Rod", "Nocturnal Rod", "Phoenix Rod", "Plastic Rod", "Rapid Rod", "Reinforced Rod", "Rod Of The Depths", "Scurvy Rod", "Steady Rod", "Stone Rod", "Training Rod", "Trident Rod", "Midas", },
+        Values = {"Aurora Rod", "Carbon Rod", "Destiny Rod", "Fast Rod", "Flimsy Rod", "Fortune Rod", "Kings Rod", "Long Rod", "Lucky Rod", "Midas Rod", "Mythical Rod", "Nocturnal Rod", "Phoenix Rod", "Plastic Rod", "Rapid Rod", "Reinforced Rod", "Rod Of The Depths", "Scurvy Rod", "Steady Rod", "Stone Rod", "Training Rod", "Trident Rod", "Midas", "Arctic Rod", "Avalanche Rod", "Summit Rod"},
         Multi = false,
         Default = nil,
     })
@@ -762,7 +826,7 @@ do
     Tabs.Items:AddButton({
         Title = "Purchase Rod",
         Callback = function()
-            ReplicatedStorage.events.purchase:FireServer(SelectedRod, 'Rod', nil, 1)
+            ReplicatedStorage.Link.events.purchase:FireServer(SelectedRod, 'Rod', nil, 1)
         end
     })
 
@@ -1152,9 +1216,10 @@ do
         end
     end)
 
-    local DisableOxygen = Tabs.Misc:AddToggle("DisableOxygen", {Title = "Disable Oxygen", Default = true })
+    local DisableOxygen = Tabs.Misc:AddToggle("DisableOxygen", {Title = "Disable Oxygen and Temperature", Default = true })
     DisableOxygen:OnChanged(function()
         LocalPlayer.Character.client.oxygen.Disabled = Options.DisableOxygen.Value
+        LocalPlayer.Character.client.temperature.Disabled = Options.DisableOxygen.Value
     end)
 
     Tabs.Misc:AddButton({
