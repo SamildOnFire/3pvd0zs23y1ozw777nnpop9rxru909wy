@@ -497,7 +497,7 @@ local allPlayerAround = GetPlayersString()
 -- // // // Tabs Gui // // // --
 
 local Tabs = { -- https://lucide.dev/icons/
-    Exclusives = Window:AddTab({ Title = "Exclusives", Icon = "heart" }),
+    --Exclusives = Window:AddTab({ Title = "Exclusives", Icon = "heart" }),
     Main = Window:AddTab({ Title = "Main", Icon = "list" }),
     FishSet = Window:AddTab({ Title = "Fishing Setting", Icon = "settings-2" }),
     Visuals = Window:AddTab({ Title = "Visuals", Icon = "eye" }),
@@ -511,7 +511,7 @@ local Options = Fluent.Options
 
 do
     -- // Exclusives Tab // --
-    local section = Tabs.Exclusives:AddSection("Exclusives Featues")
+    --local section = Tabs.Exclusives:AddSection("Exclusives Featues")
 
     -- // Main Tab // --
     local section = Tabs.Main:AddSection("Auto Fishing")
